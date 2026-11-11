@@ -1,0 +1,28 @@
+# Godot generates these locally. Keep .gd.uid source identifiers tracked.
+.godot/
+*.import
+
+# Local builds and test output.
+build/
+__pycache__/
+*.pyc
+.DS_Store
+
+# Local credentials and signing material.
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+# Platform exports.
+*.apk
+*.aab
+*.apks
+*.pck
+*.wasm
+*.exe
+*.dmg

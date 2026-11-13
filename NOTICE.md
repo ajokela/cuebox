@@ -13,3 +13,9 @@ See Godot's [license guidance](https://docs.godotengine.org/en/stable/about/comp
 
 The supplied Web export preset includes LICENSE and this notice in the project
 pack. When creating other distribution formats, retain these notices as well.
+
+The website source and original workshop illustration in `site/` are MIT
+licensed. The bundled Space Grotesk and IBM Plex Mono website fonts use the
+SIL Open Font License; their notices are in `site/assets/*-LICENSE.txt`.
+The website build includes the installed Godot engine's license and third-party
+notices beside the playable sample at `/licenses/`.

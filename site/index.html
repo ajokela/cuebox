@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f3f0e7">
+  <title>Cuebox — Big adventures. Giant pixels.</title>
+  <meta name="description" content="An open-source adventure game framework for Godot. Bring the strange little world in your head to life with rooms, characters, inventory, dialogue and saves. MIT licensed.">
+  <link rel="canonical" href="https://cuebox.gd/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Cuebox — Big adventures. Giant pixels.">
+  <meta property="og:description" content="The open-source adventure game framework for Godot. You bring the world. Cuebox brings the moving parts.">
+  <meta property="og:url" content="https://cuebox.gd/">
+  <meta property="og:image" content="https://cuebox.gd/assets/social.png?v=giant-pixels">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="/assets/icon.svg" type="image/svg+xml">
+  <link rel="preload" href="/assets/space-grotesk-bold.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="header wrap">
+    <a class="brand" href="/" aria-label="Cuebox home"><img src="/assets/icon.svg" width="36" height="36" alt="">cuebox<span class="brand-dot">.</span></a>
+    <nav aria-label="Main navigation">
+      <a href="#engine">The engine</a><a href="#play">Play a little</a><a href="#build">Start building</a>
+    </nav>
+    <a class="nav-github" href="https://github.com/ajokela/cuebox">GitHub <span aria-hidden="true">↗</span></a>
+  </header>
+  <main id="main">
+    <section class="hero wrap" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="status-dot"></span> An adventure framework for Godot</p>
+        <h1 id="hero-title">Big adventures.<br>Giant pixels<span class="orange">.</span></h1>
+        <p class="hero-intro">For strange little worlds.<br>And the people who make them.</p>
+        <p class="hero-body">You bring the characters, the puzzles and the questionable uses for a rubber chicken. Cuebox brings the moving parts.</p>
+        <div class="hero-actions"><a class="button primary" href="#build">Make your first scene <span aria-hidden="true">↗</span></a><a class="text-link" href="#play">Try the sample <span aria-hidden="true">↓</span></a></div>
+        <p class="fine hero-note">Open source. MIT licensed. Entirely yours.</p>
+      </div>
+      <div class="hero-visual">
+        <div class="scene-sticker" aria-hidden="true">a little curiosity<br>goes a long way <svg viewBox="0 0 80 35"><path d="M4 4Q58 -4 60 25M49 18L60 29L71 18"/></svg></div>
+        <div class="scene-window">
+          <div class="window-bar"><span><i></i><i></i><i></i></span><span>somewhere_interesting.gd</span><span aria-hidden="true">↗</span></div>
+          <div class="room-illustration">
+            <img src="/assets/workshop.svg" width="480" height="300" alt="A pixel-art workshop at night: a moonlit window, glowing radio, wooden drawers and a very persistent plant.">
+            <button class="hotspot radio" data-object="radio" aria-label="Inspect the radio"><span>RADIO</span><b aria-hidden="true">+</b></button>
+            <button class="hotspot drawer" data-object="drawer" aria-label="Inspect the drawer"><span>DRAWER</span><b aria-hidden="true">+</b></button>
+            <button class="hotspot plant" data-object="plant" aria-label="Inspect the plant"><span>PLANT</span><b aria-hidden="true">+</b></button>
+          </div>
+          <div class="scene-dialogue"><span class="speaker">YOU</span><p id="scene-line" aria-live="polite">“There’s definitely a story in here.”</p></div>
+          <div class="scene-inventory"><span class="fine">POCKETS</span><span id="pocket" class="pocket" aria-label="Empty pocket">·</span><span class="scene-hint">Click around. It’s an adventure.</span><button id="scene-reset" aria-label="Reset the illustration" title="Reset illustration">↺</button></div>
+        </div>
+        <p class="scene-caption"><span class="tiny-cross">✳</span> An interactive illustration. Your world could be next.</p>
+      </div>
+    </section>
+    <div class="spec-strip wrap" aria-label="Project details"><span><b>GODOT</b> 4.7.2 verified</span><span><b>GDSCRIPT</b> All the way down</span><span><b>MIT</b> Build it your way</span><span class="spec-last">Made for the point &amp; click of it.</span></div>
+
+    <section class="engine-section wrap section" id="engine" aria-labelledby="engine-title">
+      <div class="section-top"><p class="eyebrow">01 / The moving parts</p><p class="margin-note">Less reinventing the inventory.<br>More putting weird things in it.</p></div>
+      <div class="section-heading"><h2 id="engine-title">Your story has enough<br>loose ends already.</h2><p>Cuebox handles the machinery of a pixel-art adventure, so you can spend your time on the things a player will remember.</p></div>
+      <div class="feature-grid">
+        <article class="feature"><span class="feature-icon" aria-hidden="true">⌁</span><span class="feature-number">01</span><h3>A place to get lost.</h3><p>Walkable rooms, hotspots and transitions. Give your world a floor plan, then fill it with things worth clicking.</p><span class="feature-meta">ROOMS / WALK BOXES / OBJECTS</span></article>
+        <article class="feature"><span class="feature-icon" aria-hidden="true">☷</span><span class="feature-number">02</span><h3>People with baggage.</h3><p>Multiple playable characters, each with their own inventory. Conversations, item interactions and cutscenes included.</p><span class="feature-meta">CAST / DIALOGUE / INVENTORY</span></article>
+        <article class="feature"><span class="feature-icon" aria-hidden="true">▧</span><span class="feature-number">03</span><h3>The details that stay.</h3><p>Save slots, autosave, music, sound and reading preferences. Plus hooks for translation and your own game systems.</p><span class="feature-meta">SAVES / AUDIO / PRESENTATION</span></article>
+      </div>
+      <div class="engine-foot"><p><span aria-hidden="true">↳</span> Built in a real adventure. Extracted for the next one.</p><a href="https://github.com/ajokela/cuebox#build-your-own-adventure">Look under the hood <span aria-hidden="true">↗</span></a></div>
+    </section>
+
+    <section class="play-section" id="play" aria-labelledby="play-title">
+      <div class="wrap">
+        <div class="section-top"><p class="eyebrow">02 / A very small adventure</p><span class="play-badge"><span class="status-dot"></span> Play in your browser</span></div>
+        <div class="play-layout">
+          <div class="play-copy"><h2 id="play-title">The Last<br><span>Signal.</span></h2><p>A quiet radio shack. A dark rooftop beacon. A valley waiting to hear from you.</p><p class="subtle">Meet Rae in Cuebox’s original two-room sample. Find what’s broken. See what’s in the drawer. Make a little connection.</p><p class="play-controls"><span>01</span> Click to walk or use.<br><span>02</span> Select an item, then its target.<br><span>03</span> A little curiosity does the rest.</p><a class="text-link light" href="https://github.com/ajokela/cuebox/tree/main/examples/last_signal">Every bit of it is in the repo <span aria-hidden="true">↗</span></a></div>
+          <div class="game-area">
+            <div class="game-bar"><span><span class="status-dot"></span> THE LAST SIGNAL</span><a href="/play/" target="_blank" rel="noopener">Open in a new tab <span aria-hidden="true">↗</span></a></div>
+            <div class="game-viewport" id="game-viewport">
+              <div class="game-cover" id="game-cover"><img src="/assets/sample-roof.svg" width="320" height="152" alt="The Last Signal’s rooftop beacon against a starry mountain sky." loading="lazy"><div class="cover-shade"></div><button class="button sample-button" id="start-game">Play The Last Signal <span aria-hidden="true">▶</span></button><p id="game-note">Free to play · No account · Loads on click</p><noscript><a class="noscript-play" href="/play/">Open the sample game →</a></noscript></div>
+            </div>
+            <p class="game-footnote">A tiny working example, ready to take apart.<br><span>Sample saves stay in this browser. Desktop or landscape works best.</span></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="build-section wrap section" id="build" aria-labelledby="build-title">
+      <div class="section-top"><p class="eyebrow">03 / Your next rabbit hole</p><span class="fine">NO SUBSCRIPTION. NO ROYALTIES.</span></div>
+      <div class="build-layout">
+        <div><h2 id="build-title">A room. A script.<br>A possibility.</h2><p class="build-intro">Ordinary GDScript. Your own assets. A small framework you can actually read.</p><p class="body-copy">Clone the project, open it in Godot 4.7.2 and press F5. The sample is your starting point: swap in your cast, draw your rooms and write what happens next.</p><a class="button primary" href="https://github.com/ajokela/cuebox#try-it">Read the getting-started guide <span aria-hidden="true">↗</span></a><p class="fine compatibility">Verified with Godot 4.7.2. Other versions haven’t been verified yet.</p></div>
+        <div class="code-stack"><div class="terminal"><div class="code-title"><span>START HERE</span><button id="copy-command" aria-label="Copy clone and launch commands">Copy <span aria-hidden="true">⧉</span></button></div><pre><code><span class="code-comment"># One repo. One little adventure.</span>
+git clone https://github.com/ajokela/cuebox.git
+cd cuebox
+godot --editor --path .</code></pre><span id="copy-status" class="sr-only" role="status"></span></div>
+          <div class="script-panel"><div class="code-title"><span>rooms / radio_shack.gd</span><span>GDSCRIPT</span></div><pre><code><span class="code-keyword">extends</span> <span class="code-string">"res://engine/room_script.gd"</span>
+
+<span class="code-keyword">func</span> <span class="code-func">use_radio</span>(who: String, item: String) -> void:
+    <span class="code-keyword">if</span> item == <span class="code-string">"fuse"</span>:
+        take(who, item)
+        set_flag(<span class="code-string">"radio_ready"</span>)
+        <span class="code-keyword">await</span> say(who, <span class="code-string">"WE’RE BACK ON THE AIR."</span>)
+    <span class="code-keyword">else</span>:
+        <span class="code-keyword">await</span> say(who, <span class="code-string">"IT NEEDS A NEW FUSE."</span>)</code></pre></div>
+          <p class="code-caption"><span aria-hidden="true">↳</span> You write the interesting part.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="honest-section wrap" aria-labelledby="honest-title"><div><p class="eyebrow">Small framework. Clear boundaries.</p><h2 id="honest-title">Made to be understood.<br>And made your own.</h2></div><div><p>Cuebox is a code-first framework on top of Godot. You author the content; it runs the adventure. It isn’t a visual puzzle editor or an art generator.</p><p>The runtime gives you local saves and extension points. Your game owns its content pipeline, save migrations and platform integrations.</p><div class="honest-links"><a href="https://github.com/ajokela/cuebox#build-your-own-adventure">Engine overview ↗</a><a href="https://github.com/ajokela/cuebox/blob/main/docs/authoring.md">Authoring guide ↗</a><a href="https://github.com/ajokela/cuebox/blob/main/CONTRIBUTING.md">Contributing ↗</a></div></div></section>
+
+    <section class="final-cta wrap"><div class="end-icon" aria-hidden="true"><img src="/assets/icon.svg" width="64" height="64" alt=""></div><p class="eyebrow">The next scene is yours.</p><h2>Go make something<br>worth clicking.</h2><a class="button primary" href="https://github.com/ajokela/cuebox">Get Cuebox on GitHub <span aria-hidden="true">↗</span></a><p class="fine">Free to use, change and ship. Keep the MIT notice.</p></section>
+  </main>
+  <footer class="footer wrap"><a class="brand" href="/">cuebox<span class="brand-dot">.</span></a><p>Made by <a href="https://tinymachines.io">Tiny Machines Workshop</a>.<br>For the joy of figuring things out.</p><div><a href="https://github.com/ajokela/cuebox">Source ↗</a><a href="/licenses/">Licenses</a><span>© 2026</span></div></footer>
+</body>
+</html>

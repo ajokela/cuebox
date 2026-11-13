@@ -26,6 +26,16 @@ to update its composition of the site's typography and original workshop SVG.
 Font licenses are in `assets/`.
 All other website source and original art use the repository's MIT license.
 
+## Visit counting
+
+Every page (not the game frame) loads the Tiny Machines Umami counter from
+`analytics.tinymachines.io`, website entry `e39c4c74-6d98-4a26-a146-bdf2143d0b4e`
+("Cuebox", cuebox.gd), counting only on `cuebox.gd` and `www.cuebox.gd`: no
+cookies, Do Not Track honoured, query strings and fragments left out.
+`count.js` loads first and cuts referrers to their origin. The Privacy section
+of `/licenses/` (written in `tools/build.py`) says exactly what is counted;
+change it first if anything else is ever counted.
+
 ## AWS hosting
 
 `infra/site.yaml` owns a private S3 bucket (all four public-access blocks, bucket

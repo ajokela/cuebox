@@ -2,6 +2,7 @@ extends SceneTree
 # Try Cuebox (examples/playground): the host the cuebox.gd/try/ page drives, given files the way
 # the page gives them. One case per process (--case=), as the page runs each Run in a fresh engine.
 const PlaygroundHost = preload("res://examples/playground/host.gd")
+const Guard = preload("res://examples/playground/guard.gd")
 const FILES := ["content.gd", "rooms/shack/geometry.gd", "rooms/shack/shack.gd", "rooms/roof/geometry.gd", "rooms/roof/roof.gd"]
 const QUICK := {"test_mode": true, "test_turbo": true}
 var errors: Array = []
@@ -45,6 +46,11 @@ func _run() -> void:
 		"runtime_error": await runtime_error()
 		"bad_content": await bad_content()
 		"bad_paths": await bad_paths()
+		"loop_transform": loop_transform()
+		"endless_loop": await endless_loop('func use_drawer(who: String, _item: String) -> void:\n\twhile true:\n\t\tpass\n', 3)
+		"endless_inline": await endless_loop('func use_drawer(who: String, _item: String) -> void:\n\tvar n := 0\n\twhile true: n += 1\n', 4)
+		"endless_for": await endless_loop('func use_drawer(who: String, _item: String) -> void:\n\tfor i: int in 1000000000000:\n\t\tpass\n', 3)
+		"waiting_loop": await waiting_loop()
 		_: errors.append("unknown case " + case)
 	print(JSON.stringify({"pass": errors.is_empty(), "case": case, "errors": errors, "reports": host.reports}))
 	host.queue_free()
@@ -143,3 +149,61 @@ func bad_paths() -> void:
 	check(reports("error").size() == 3, "each bad name is an error: " + str(reports("error")))
 	check(not FileAccess.file_exists(root_path + "escape.gd"), "nothing written above the source folder")
 	check(not FileAccess.file_exists(root_path + "src/rooms/shack/notes.txt"), "nothing but .gd files written")
+
+# Loops get a check the visitor never sees: their text, their line numbers.
+func loop_transform() -> void:
+	var Loops = load("res://examples/playground/loops.gd")
+	var source := "extends RefCounted\nfunc f(items: Array) -> int:\n\tvar n := 0\n\t# a comment\n\twhile n < 3:\n\n\t\t# inside\n\t\tn += 1\n\tfor i: int in range(2):\n\t\tn += i\n\twhile items.any(func(x): return x > n): n += 1\n\tfor k in {\"a\": 1}:\n\t\tn += 1\n\tvar s := \"while true: not a loop\"\n\twhile (n < 10 and\n\t\t\tn != 7):\n\t\tn += 1\n\treturn n\n"
+	var out: Dictionary = Loops.guard(source, "rooms/x/x.gd")
+	var text: String = out["text"]
+	var lines: Array = Array(text.split("\n"))
+	var guards := lines.filter(func(l): return "guard.gd" in l)
+	check(guards.size() == 5, "five loops, five checks: " + text)
+	check(lines.filter(func(l): return "not a loop" in l).size() == 1 and not "guard.gd" in lines[lines.find(lines.filter(func(l): return "not a loop" in l)[0]) + 1], "a string that says while is not a loop: " + text)
+	var script := GDScript.new()
+	script.source_code = text
+	check(script.reload() == OK, "it still compiles: " + text)
+	if script.reload() == OK: check(script.new().f([]) == 7, "and does what it did")
+	var map: Array = out["lines"]
+	check(map.size() == lines.size(), "every line has its original number")
+	for i in lines.size():
+		if "n != 7" in lines[i]: check(map[i] == 16, "a continued condition keeps its line: %s" % str(map))
+		if lines[i].strip_edges() == "return n": check(map[i] == 18, "the last line keeps its number: %s" % str(map))
+	check(out["text"] == Loops.guard(source, "rooms/x/x.gd")["text"], "the same every time")
+	check(Loops.guard("extends RefCounted\n", "a.gd")["text"] == "extends RefCounted\n", "no loops, no change")
+
+# A loop that never lets a frame finish is stopped after a moment, named by the visitor's file and
+# line; the page stays responsive and the game stops.
+func endless_loop(handler: String, line: int) -> void:
+	var files := sample()
+	files["rooms/shack/shack.gd"] = files["rooms/shack/shack.gd"].replace('func use_drawer(who: String, _item: String) -> void:\n', handler + 'func use_drawer_was(who: String, _item: String) -> void:\n')
+	check(host.run(files, QUICK), "the sample with a loop runs: " + str(host.reports))
+	if host.game == null: return
+	var started := Time.get_ticks_msec()
+	host.console('use_drawer("rae", "")')
+	var waited := Time.get_ticks_msec() - started
+	await frames(3)
+	check(waited < 6000, "the loop was stopped (%d ms)" % waited)
+	var found: Array = reports("error").filter(func(r): return r.get("file") == "rooms/shack/shack.gd")
+	check(found.size() == 1 and found[0].get("line") == line and "loop" in found[0]["text"], "the error names the loop's line %d: %s" % [line, str(reports("error"))])
+	check(reports("stopped").size() == 1, "the page hears the game stopped")
+	host.console('flag("x")')
+	check(reports("error").back().get("input") == 'flag("x")' and "isn't running" in reports("error").back()["text"], "the console says it stopped")
+
+# A loop that waits a frame each time round is not stuck, however long it runs; and errors after a
+# guarded loop still name the visitor's own line.
+func waiting_loop() -> void:
+	var files := sample()
+	var handler := 'func use_drawer(who: String, _item: String) -> void:\n\tvar n := 0\n\twhile n < 400:\n\t\tn += 1\n\t\tawait game.get_tree().process_frame\n\tvar lamp = null\n\tlamp.light()\n'
+	files["rooms/shack/shack.gd"] = files["rooms/shack/shack.gd"].replace('func use_drawer(who: String, _item: String) -> void:\n', handler + 'func use_drawer_was(who: String, _item: String) -> void:\n')
+	check(host.run(files, QUICK), "the sample with a waiting loop runs")
+	if host.game == null: return
+	host.console('use_drawer("rae", "")')
+	var started := Time.get_ticks_msec()
+	while Time.get_ticks_msec() - started < 9000 and reports("error").is_empty():
+		await process_frame
+		OS.delay_msec(8)
+	check(reports("stopped").is_empty(), "a loop that waits each frame isn't stopped: " + str(reports("error")))
+	var found: Array = reports("error")
+	check(Time.get_ticks_msec() - started > Guard.LIMIT_MS, "the loop ran longer than one frame may")
+	check(found.size() == 1 and found[0].get("line") == 8 and "light" in found[0]["text"], "the error after the loop is on the visitor's line 8: " + str(found))

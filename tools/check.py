@@ -53,7 +53,8 @@ def main():
 
 # Try Cuebox (examples/playground): each case is one Run, in its own process as on the web page. Some
 # cases make errors on purpose, so only the case's own report decides.
-PLAYGROUND_CASES = ('edited', 'console', 'parse_error', 'runtime_error', 'bad_content', 'bad_paths')
+PLAYGROUND_CASES = ('edited', 'console', 'parse_error', 'runtime_error', 'bad_content', 'bad_paths', 'loop_transform',
+                    'endless_loop', 'endless_inline', 'endless_for', 'waiting_loop')
 
 
 def playground(godot, case):

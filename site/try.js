@@ -146,7 +146,12 @@ function consoleLine(line) {
   else { say('c-in', `> ${line}`); say('c-err', '✕ Press Run first: the console talks to the running game.'); }
 }
 
-text.addEventListener('input', () => { files[current] = text.value; drawTabs(); drawGutter(); });
+let saving = 0;
+text.addEventListener('input', () => {
+  files[current] = text.value; drawTabs(); drawGutter();
+  clearTimeout(saving);
+  saving = setTimeout(keep, 400);   // kept as you type: a reload loses nothing
+});
 text.addEventListener('scroll', () => { gutter.scrollTop = text.scrollTop; });
 text.addEventListener('keydown', event => {
   if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') { event.preventDefault(); run(); return; }

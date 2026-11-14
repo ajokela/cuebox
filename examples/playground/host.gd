@@ -7,6 +7,8 @@ extends Node
 # Reports are Dictionaries with a "kind": started, stopped, line (a transcript entry), flag (name,
 # value), result (input, text) and error (text, and file/line when they're the visitor's).
 const Content = preload("res://engine/content.gd")
+const Guard = preload("res://examples/playground/guard.gd")
+const Loops = preload("res://examples/playground/loops.gd")
 const SAMPLE := "res://examples/last_signal/"
 const PATH_PATTERN := "^[a-z0-9_]+(/[a-z0-9_]+)*\\.gd$"
 
@@ -42,6 +44,7 @@ var _catch := Catch.new()
 var _seen := 0
 var _flags := {}
 var _console_callback  # the page's way in; kept so it stays valid
+var _lines := {}  # file -> its original line number for each line as run (loops.gd)
 
 func _enter_tree() -> void:
 	OS.add_logger(_catch)
@@ -68,6 +71,8 @@ func run(files: Dictionary, options := {}) -> bool:
 	var src := root + "src/"
 	_clear(src)
 	_catch.take()   # nothing from before this run
+	Guard.reset()
+	_lines = {}
 	var pattern := RegEx.create_from_string(PATH_PATTERN)
 	var written := []
 	for path in files:
@@ -75,8 +80,10 @@ func run(files: Dictionary, options := {}) -> bool:
 			_report({"kind": "error", "text": "%s: only .gd files in plain folders can run here" % str(path)})
 			continue
 		DirAccess.make_dir_recursive_absolute((src + path).get_base_dir())
+		var guarded: Dictionary = Loops.guard(files[path], path)   # a loop that never ends can't freeze the page
+		_lines[path] = guarded["lines"]
 		var file := FileAccess.open(src + path, FileAccess.WRITE)
-		file.store_string(files[path])
+		file.store_string(guarded["text"])
 		file.close()
 		written.append(path)
 	var broken := 0
@@ -164,6 +171,11 @@ func _sync() -> void:
 		_report({"kind": "line", "text": game.transcript[_seen]})
 		_seen += 1
 	_drain()
+	if Guard.tripped:
+		_report({"kind": "error", "file": Guard.where[0], "line": Guard.where[1], "text": "this loop ran for %d seconds without letting the game draw a frame, so the game was stopped" % (Guard.LIMIT_MS / 1000)})
+		_report({"kind": "stopped"})
+		host.process_mode = Node.PROCESS_MODE_DISABLED
+		game = null
 
 func _stop() -> bool:
 	_report({"kind": "stopped"})
@@ -185,7 +197,8 @@ func _drain() -> int:
 					break
 		if at != null:
 			out["file"] = String(at[0]).trim_prefix(src)
-			out["line"] = at[1]
+			var lines: Array = _lines.get(out["file"], [])
+			out["line"] = lines[at[1] - 1] if at[1] >= 1 and at[1] <= lines.size() else at[1]
 		_report(out)
 		count += 1
 	return count

@@ -30,7 +30,10 @@ select the item and then its target. MENU opens saves and reading preferences.
 Change it, press Run, and the engine plays your version in the browser; a console shows what Rae
 says, the rooms and flags, errors with their file and line, and runs a line of your own against the
 current room's script. The page's game is `examples/playground/` (`host.gd`), exported with the
-debug template so runtime errors are reported too. Edits stay in the browser.
+debug template so runtime errors are reported too. The game and the page share one browser thread,
+so before compiling, `loops.gd` gives every `while` and `for` loop a check (`guard.gd`): a loop that
+keeps one frame from finishing for two seconds is ended, the game stops and the console names the
+loop's line. Loops that wait a frame each time round are left alone. Edits stay in the browser.
 
 ## Build your own adventure
 

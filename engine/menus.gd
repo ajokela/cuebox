@@ -45,7 +45,8 @@ const ROW := 12  # each item's row height: an easy tap scaled up on a phone
 const TITLE_ROWS_Y := 84  # where the title screen's rows start
 # presentation title_starfield "warp": a fly-through starfield behind the title, stepped like a
 # 1990 machine rather than smooth; Reduced Effects keeps the still field.
-const WARP_STARS := 90
+const WARP_STARS := 150
+const WARP_SHOWN := 0.6   # a star shows once it is this near (1 is the far distance)
 const WARP_HZ := 12.0       # steps a second
 const WARP_SECONDS := 3.5   # a star's trip from the far distance past the edge
 const HEADER_Y := 20
@@ -926,13 +927,12 @@ func _draw() -> void:
 		reader.draw(self); return
 	draw_rect(Rect2(0, 0, w, Feel.VIEW_H), Color.BLACK)
 	if page == "title":
-		if game.presentation.get("title_stars",false):
-			var clear := [[20, 62], [TITLE_ROWS_Y - 4, TITLE_ROWS_Y + 4 * ROW + 4]]
-			if title_stars_move():
-				for star in warp_stars(w, _warp_clock, clear): draw_rect(Rect2(star[0], Vector2i(star[1], star[1])), star[2])
-			else:
-				_stars(w, clear)
 		var titles := _title_texts()
+		if game.presentation.get("title_stars",false):
+			if title_stars_move():
+				for star in warp_stars(w, _warp_clock, _title_boxes(titles, w)): draw_rect(Rect2(star[0], Vector2i(star[1], star[1])), star[2])
+			else:
+				_stars(w, [[20, 62], [TITLE_ROWS_Y - 4, TITLE_ROWS_Y + 4 * ROW + 4]])
 		for i in titles.size(): _big(titles[i], 24+i*20 if titles.size()>1 else 44, w)
 	elif page in ["demo_end", "prologue_end"]:
 		var texts := demo_end_texts() if page == "demo_end" else prologue_end_texts()
@@ -1006,8 +1006,19 @@ func title_stars_move() -> bool:
 	return game.presentation.get("title_stars", false) and game.presentation.get("title_starfield", "") == "warp" \
 		and not game.reduced_effects()
 
-# The fly-through stars at a moment: [position, size, colour] each, on screen and outside the clear
-# bands. Each star keeps a direction from the centre and comes closer; nearer is brighter and bigger.
+# Where the moving stars stay out: a box round the title lines and one round the rows, so the stars
+# stream past on every side of the text rather than only above and below it.
+func _title_boxes(titles: Array, w: int) -> Array:
+	var title_w := 0
+	for t in titles: title_w = maxi(title_w, 2 * (t.length() * PixelFont.ADVANCE - 1))
+	var row_w := 0
+	for r in _rows: row_w = maxi(row_w, r["text"].length() * PixelFont.ADVANCE - 1)
+	return [[(w - title_w) / 2 - 4, 20, (w + title_w) / 2 + 4, 62],
+		[(w - row_w) / 2 - 8, TITLE_ROWS_Y - 4, (w + row_w) / 2 + 8, TITLE_ROWS_Y + _rows.size() * ROW + 4]]
+
+# The fly-through stars at a moment: [position, size, colour] each, on screen and outside `clear`:
+# boxes [x0, y0, x1, y1] or full-width bands [y0, y1]. Each star keeps a direction from the centre
+# and comes closer; it shows once nearer than WARP_SHOWN, brighter and bigger as it nears.
 func warp_stars(w: int, seconds: float, clear: Array) -> Array:
 	var out := []
 	var t := floorf(seconds * WARP_HZ) / WARP_HZ
@@ -1022,11 +1033,12 @@ func warp_stars(w: int, seconds: float, clear: Array) -> Array:
 		var phase := float(n % 1000) / 1000.0
 		if absf(dx) < 0.08 and absf(dy) < 0.08: continue   # dead ahead: it would never move
 		var z := 1.0 - fposmod(phase + t / WARP_SECONDS, 1.0) * 0.95   # 1 far .. 0.05 passing
+		if z > WARP_SHOWN: continue
 		var at := centre + Vector2(dx * w / 2.0, dy * Feel.VIEW_H / 2.0) * (0.12 / z)
 		var x := int(at.x)
 		var y := int(at.y)
 		if x < 0 or y < 0 or x >= w or y >= Feel.VIEW_H: continue
-		if clear.any(func(band): return y > band[0] and y < band[1]): continue
+		if clear.any(func(c): return (c.size() == 2 and y > c[0] and y < c[1]) or (c.size() == 4 and x >= c[0] and x < c[2] and y >= c[1] and y < c[3])): continue
 		out.append([Vector2i(x, y), 2 if z < 0.2 else 1, C_WHITE if z < 0.35 else (C_LGREY if z < 0.7 else C_MGREY)])
 	return out
 

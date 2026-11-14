@@ -46,6 +46,8 @@ func _run() -> void:
 	var a: Array=menus.warp_stars(320,0.01,bands)
 	check(a.size()>20 and a==menus.warp_stars(320,0.05,bands) and a!=menus.warp_stars(320,1.0,bands),"warp stars move in twelve steps a second")
 	check(a.all(func(s): return s[0].x>=0 and s[0].x<320 and s[0].y>=0 and s[0].y<180 and not bands.any(func(band): return s[0].y>band[0] and s[0].y<band[1])),"warp stars stay on screen and clear of text")
+	var box=[[100,60,220,120]]
+	check(menus.warp_stars(320,2.0,box).all(func(s): return not (s[0].x>=100 and s[0].x<220 and s[0].y>=60 and s[0].y<120)),"warp stars stay out of a text box")
 	check(not menus.title_stars_move(),"stars are still unless the host asks")
 	var shown: Dictionary=game.presentation.duplicate()
 	game.presentation["title_stars"]=true; game.presentation["title_starfield"]="warp"

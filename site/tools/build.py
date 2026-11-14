@@ -72,6 +72,7 @@ game = (DIST / 'try/index.html').read_text().replace('<link rel="icon" href="dat
 (DIST / 'try/game.html').write_text(game)
 (DIST / 'try/index.html').write_text((SITE / 'try.html').read_text())
 shutil.copy2(SITE / 'try.js', DIST / 'try/try.js')
+shutil.copy2(SITE / 'gdscript.js', DIST / 'try/gdscript.js')
 # The sample's files as shipped: what Reset puts back and what a first Run plays.
 TRY_FILES = ('content.gd', 'rooms/shack/geometry.gd', 'rooms/shack/shack.gd', 'rooms/roof/geometry.gd', 'rooms/roof/roof.gd')
 (DIST / 'try/files.json').write_text(json.dumps({path: (ROOT / 'examples/last_signal' / path).read_text() for path in TRY_FILES}, indent=1))

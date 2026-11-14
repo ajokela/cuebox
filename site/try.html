@@ -10,6 +10,7 @@
   <link rel="icon" href="/assets/icon.svg" type="image/svg+xml">
   <link rel="preload" href="/assets/space-grotesk-bold.ttf" as="font" type="font/ttf" crossorigin>
   <link rel="stylesheet" href="/style.css">
+  <script src="/try/gdscript.js" defer></script>
   <script src="/try/try.js" defer></script>
   <script src="/count.js" defer></script><script defer src="https://analytics.tinymachines.io/script.js" data-website-id="e39c4c74-6d98-4a26-a146-bdf2143d0b4e" data-domains="cuebox.gd,www.cuebox.gd" data-do-not-track="true" data-exclude-search="true" data-exclude-hash="true" data-before-send="cueboxAnalytics"></script>
 </head>
@@ -38,7 +39,10 @@
         <div class="try-tabs" role="tablist" aria-label="Files"></div>
         <div class="try-code">
           <div class="try-gutter" aria-hidden="true"></div>
-          <textarea id="try-text" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="File contents" aria-describedby="try-keys"></textarea>
+          <div class="try-layers">
+            <pre class="try-hl" aria-hidden="true"><code id="try-hl"></code></pre>
+            <textarea id="try-text" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="File contents" aria-describedby="try-keys"></textarea>
+          </div>
         </div>
       </section>
       <section class="try-stage" aria-label="Game and console">

@@ -7,6 +7,7 @@ const ORDER = ['rooms/shack/shack.gd', 'rooms/shack/geometry.gd', 'rooms/roof/ro
 const tabs = document.querySelector('.try-tabs');
 const text = document.querySelector('#try-text');
 const gutter = document.querySelector('.try-gutter');
+const colored = document.querySelector('#try-hl');   // the colored copy under the editor's text
 const log = document.querySelector('#try-log');
 const input = document.querySelector('#try-input');
 const viewport = document.querySelector('#try-viewport');
@@ -56,6 +57,12 @@ function drawGutter() {
     return row;
   }));
   gutter.scrollTop = text.scrollTop;
+  colored.innerHTML = window.cueboxGDScript ? window.cueboxGDScript.html(text.value) : '';
+  follow();
+}
+function follow() {   // the copy and the line numbers move with the editor's scroll
+  gutter.scrollTop = text.scrollTop;
+  colored.style.transform = `translate(${-text.scrollLeft}px, ${-text.scrollTop}px)`;
 }
 function open(path, line) {
   files[current] = text.value;
@@ -152,7 +159,7 @@ text.addEventListener('input', () => {
   clearTimeout(saving);
   saving = setTimeout(keep, 400);   // kept as you type: a reload loses nothing
 });
-text.addEventListener('scroll', () => { gutter.scrollTop = text.scrollTop; });
+text.addEventListener('scroll', follow);
 text.addEventListener('keydown', event => {
   if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') { event.preventDefault(); run(); return; }
   if (event.key === 'Escape') { leaving = true; return; }

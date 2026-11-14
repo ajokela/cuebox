@@ -26,7 +26,9 @@ started by `examples/playground/main.tscn` and built with the **debug** template
 reports a visitor's compile errors but not runtime errors such as calling a method on nothing. The
 build writes the sample's own files to `try/files.json` (what Reset puts back). The game asks the
 page for the code with `parent.cueboxTry.files()` and posts what happens back to it; edits are kept
-in the browser's localStorage as they are typed and are never uploaded. A loop in the visitor's code
+in the browser's localStorage as they are typed and are never uploaded. The editor is a plain textarea
+with transparent text over a colored copy (`gdscript.js`, a small GDScript tokenizer; check it with
+`node site/tools/test_gdscript.mjs`). A loop in the visitor's code
 that never lets a frame finish would freeze the whole page (one thread), so the playground ends any
 loop that holds a frame for two seconds and stops the game (`examples/playground/loops.gd`, `guard.gd`).
 

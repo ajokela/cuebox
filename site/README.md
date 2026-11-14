@@ -21,6 +21,13 @@ project configuration. It does not export a host game or the website source.
 It also writes the installed Godot engine's license and third-party notices.
 The sample's saves and preferences stay in browser IndexedDB.
 
+`/try/` (Try Cuebox) is `try.html` and `try.js` around a second export of the same isolated source,
+started by `examples/playground/main.tscn` and built with the **debug** template: a release build
+reports a visitor's compile errors but not runtime errors such as calling a method on nothing. The
+build writes the sample's own files to `try/files.json` (what Reset puts back). The game asks the
+page for the code with `parent.cueboxTry.files()` and posts what happens back to it; edits are kept
+in the browser's localStorage and are never uploaded.
+
 The social card is `assets/social.png`; render `tools/social.html` at 1200×630
 to update its composition of the site's typography and original workshop SVG.
 Font licenses are in `assets/`.

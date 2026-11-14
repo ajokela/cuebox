@@ -46,7 +46,26 @@ def main():
         if len(reports) != 1 or reports[0].get('pass') is not True or reports[0].get('reload') != reload:
             raise RuntimeError('Missing or failed smoke report: ' + output)
         print(json.dumps(reports[0]), flush=True)
+    for case in PLAYGROUND_CASES:
+        playground(args.godot, case)
     print('Cuebox checks pass.', flush=True)
+
+
+# Try Cuebox (examples/playground): each case is one Run, in its own process as on the web page. Some
+# cases make errors on purpose, so only the case's own report decides.
+PLAYGROUND_CASES = ('edited', 'console', 'parse_error', 'runtime_error', 'bad_content', 'bad_paths')
+
+
+def playground(godot, case):
+    proof = 'user://engine-proof/' + uuid.uuid4().hex + '/'
+    result = subprocess.run([godot, '--headless', '--path', '.', '--script', 'res://tests/playground.gd', '--',
+                             '--proof-root=' + proof, '--case=' + case], cwd=ROOT, text=True,
+                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=180)
+    reports = [json.loads(line) for line in result.stdout.splitlines() if line.startswith('{')]
+    if result.returncode or len(reports) != 1 or reports[0].get('pass') is not True:
+        print(result.stdout)
+        raise RuntimeError('Playground case failed: ' + case)
+    print(json.dumps({'playground': case, 'pass': True}), flush=True)
 
 
 if __name__ == '__main__':

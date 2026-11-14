@@ -1,6 +1,6 @@
 # Cuebox
 
-[Website and playable sample](https://cuebox.gd/)
+[Website and playable sample](https://cuebox.gd/) · [Try it in your browser](https://cuebox.gd/try/)
 
 A pixel-art adventure game framework for Godot. Cuebox handles characters,
 walkable rooms, object interactions, inventory, dialogue, menus, audio and saves.
@@ -23,6 +23,14 @@ godot --editor --path .
 
 Run the project with F5 in the editor, or use `godot --path .`. Click a room object to use it. To use an inventory item,
 select the item and then its target. MENU opens saves and reading preferences.
+
+## Try it without installing anything
+
+[cuebox.gd/try](https://cuebox.gd/try/) shows The Last Signal's GDScript beside the running game.
+Change it, press Run, and the engine plays your version in the browser; a console shows what Rae
+says, the rooms and flags, errors with their file and line, and runs a line of your own against the
+current room's script. The page's game is `examples/playground/` (`host.gd`), exported with the
+debug template so runtime errors are reported too. Edits stay in the browser.
 
 ## Build your own adventure
 
@@ -57,7 +65,9 @@ python3 tools/check.py
 ```
 
 The check imports the project, verifies engine dependency boundaries, then uses
-two separate processes to play, save, cold-continue and finish the example. It
+two separate processes to play, save, cold-continue and finish the example. It then runs the
+browser playground's host through its cases (an edited run, the console, compile and runtime errors,
+bad content and file names), each in its own process. It
 uses a fresh isolated test save directory each run. This is an automated action
 check, not a blind human playtest.
 

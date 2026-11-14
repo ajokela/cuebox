@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f3f0e7">
+  <title>Try Cuebox — Edit The Last Signal in your browser</title>
+  <meta name="description" content="Change The Last Signal's GDScript, press Run and play your version. Cuebox and Godot run right here in your browser; nothing is installed or uploaded.">
+  <link rel="canonical" href="https://cuebox.gd/try/">
+  <link rel="icon" href="/assets/icon.svg" type="image/svg+xml">
+  <link rel="preload" href="/assets/space-grotesk-bold.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/try/try.js" defer></script>
+  <script src="/count.js" defer></script><script defer src="https://analytics.tinymachines.io/script.js" data-website-id="e39c4c74-6d98-4a26-a146-bdf2143d0b4e" data-domains="cuebox.gd,www.cuebox.gd" data-do-not-track="true" data-exclude-search="true" data-exclude-hash="true" data-before-send="cueboxAnalytics"></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="header wrap">
+    <a class="brand" href="/" aria-label="Cuebox home"><img src="/assets/icon.svg" width="36" height="36" alt="">cuebox<span class="brand-dot">.</span></a>
+    <nav aria-label="Main navigation">
+      <a href="/#engine">The engine</a><a href="/play/">Play</a><a href="https://github.com/ajokela/cuebox/blob/main/docs/authoring.md">Guide</a>
+    </nav>
+    <a class="nav-github" href="https://github.com/ajokela/cuebox">GitHub <span aria-hidden="true">↗</span></a>
+  </header>
+  <main id="main" class="wrap try-page">
+    <div class="try-intro">
+      <div><p class="eyebrow"><span class="status-dot"></span>Try Cuebox · nothing to install</p><h1>Change the code.<br>Play your version.</h1></div>
+      <p class="try-lede">This is The Last Signal, Cuebox’s two-room sample, as plain GDScript. Edit it, press <b>Run</b>, and the real engine plays your version right here. Your edits stay in this browser.</p>
+    </div>
+    <div class="try-grid">
+      <section class="try-editor" aria-label="Code editor">
+        <div class="try-bar">
+          <button class="try-run" id="try-run" type="button">Run ▶</button>
+          <button class="try-ghost" id="try-reset" type="button">Reset file</button>
+          <button class="try-ghost" id="try-reset-all" type="button">Reset all</button>
+          <span class="try-status" id="try-keys">⌘/Ctrl+Enter runs · Tab indents · Esc, then Tab, leaves</span>
+        </div>
+        <div class="try-tabs" role="tablist" aria-label="Files"></div>
+        <div class="try-code">
+          <div class="try-gutter" aria-hidden="true"></div>
+          <textarea id="try-text" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="File contents" aria-describedby="try-keys"></textarea>
+        </div>
+      </section>
+      <section class="try-stage" aria-label="Game and console">
+        <div class="game-viewport try-viewport" id="try-viewport">
+          <div class="game-cover" id="try-cover"><img src="/assets/sample-roof.svg" alt=""><div class="cover-shade"></div><button class="button sample-button" id="try-start" type="button">Run The Last Signal <span aria-hidden="true">▶</span></button><p>Downloads the engine (about 10 MB) only when you press Run.</p></div>
+        </div>
+        <div class="try-console">
+          <ol class="try-log" id="try-log" aria-live="polite" aria-label="Console output"><li class="c-dim">Lines Rae says, rooms, flags and errors appear here. Type below to talk to the running game.</li></ol>
+          <form class="try-form" id="try-form" autocomplete="off"><label for="try-input" class="sr-only">Console</label><span aria-hidden="true">&gt;</span><input id="try-input" spellcheck="false" autocapitalize="off" placeholder='set_flag("radio_ready")   say("rae", "HELLO")   go("roof", "stairs")'></form>
+        </div>
+      </section>
+    </div>
+    <section class="try-notes" aria-label="Things to try">
+      <div><h3>Say something else</h3><p>In <code>rooms/shack/shack.gd</code>, change a line inside <code>say(...)</code> and press Run. Rae says yours.</p></div>
+      <div><h3>Add an object</h3><p>Add a hotspot to <code>rooms/shack/geometry.gd</code>, say <code>{"id":"plant", "name":"PLANT", "rect":Rect2(200,70,30,40), "walk":Vector2(215,130), "face":"back", "prop":""}</code>, then a <code>func use_plant(who, item)</code> in <code>shack.gd</code>.</p></div>
+      <div><h3>Poke the running game</h3><p>The console runs one line against the current room’s script: <code>flag("fuse_taken")</code>, <code>pick_up("rae", "fuse")</code>, <code>use_radio("rae", "fuse")</code>, <code>game.state.flags</code>.</p></div>
+    </section>
+  </main>
+  <footer class="footer wrap"><a class="brand" href="/">cuebox<span class="brand-dot">.</span></a><p>Made by <a href="https://tinymachines.io">Tiny Machines Workshop</a>.<br>Your code runs only in this browser and is never uploaded.</p><div><a href="https://github.com/ajokela/cuebox">Source ↗</a><a href="/licenses/">Licenses &amp; privacy</a><span>© 2026</span></div></footer>
+</body>
+</html>

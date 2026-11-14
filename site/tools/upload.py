@@ -16,7 +16,7 @@ parser.add_argument('--region', default='us-east-1')
 args = parser.parse_args()
 root = Path(__file__).resolve().parents[2]
 dist = root / 'build/website/dist'
-for required in ('index.html', 'assets/social.png', 'play/index.wasm.gz', 'play/index.pck.gz', 'licenses/index.html'):
+for required in ('index.html', 'assets/social.png', 'play/index.wasm.gz', 'play/index.pck.gz', 'try/index.wasm.gz', 'try/index.pck.gz', 'try/files.json', 'licenses/index.html'):
     if not (dist / required).is_file(): raise SystemExit(f'Build is incomplete: {required}')
 
 def aws(*command):

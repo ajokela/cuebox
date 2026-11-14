@@ -29,7 +29,8 @@ configured ending card after the current action finishes.
 Optional host configuration:
 
 - `presentation`: `title` (array of lines), `demo_end`/`prologue_end` (two
-  lines), `title_stars`, `website_url`/`website_label`, `privacy_url`,
+  lines), `title_stars` (and `title_starfield: "warp"` to fly through them; Reduced
+  Effects keeps them still), `website_url`/`website_label`, `privacy_url`,
   `palette` (16 colours), and `display_modes` (name, 16 colours, optional
   entitlement ID). Empty entitlement IDs are free. No external link appears
   without a supplied URL. Display modes are cosmetic and optional.

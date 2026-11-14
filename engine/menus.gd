@@ -43,6 +43,11 @@ const MenuPages = preload("res://engine/menu_pages.gd")
 
 const ROW := 12  # each item's row height: an easy tap scaled up on a phone
 const TITLE_ROWS_Y := 84  # where the title screen's rows start
+# presentation title_starfield "warp": a fly-through starfield behind the title, stepped like a
+# 1990 machine rather than smooth; Reduced Effects keeps the still field.
+const WARP_STARS := 90
+const WARP_HZ := 12.0       # steps a second
+const WARP_SECONDS := 3.5   # a star's trip from the far distance past the edge
 const HEADER_Y := 20
 const ROWS_Y := 52  # where other pages' rows start
 const STATUS_Y := 168
@@ -897,8 +902,11 @@ func speech_reserved() -> Array:
 	var arranged:=world_notice_layout()
 	return [] if arranged.is_empty() else [arranged["reserved"]]
 
+var _warp_clock := 0.0
+
 func _process(delta: float) -> void:
 	if _quit_requested and game.can_save(): request_quit()
+	if page == "title": _warp_clock += delta
 	if notice != "" and not world_notice_layout().is_empty():
 		_notice_left -= delta
 		if _notice_left <= 0.0:
@@ -918,7 +926,12 @@ func _draw() -> void:
 		reader.draw(self); return
 	draw_rect(Rect2(0, 0, w, Feel.VIEW_H), Color.BLACK)
 	if page == "title":
-		if game.presentation.get("title_stars",false): _stars(w, [[20, 62], [TITLE_ROWS_Y - 4, TITLE_ROWS_Y + 4 * ROW + 4]])
+		if game.presentation.get("title_stars",false):
+			var clear := [[20, 62], [TITLE_ROWS_Y - 4, TITLE_ROWS_Y + 4 * ROW + 4]]
+			if title_stars_move():
+				for star in warp_stars(w, _warp_clock, clear): draw_rect(Rect2(star[0], Vector2i(star[1], star[1])), star[2])
+			else:
+				_stars(w, clear)
 		var titles := _title_texts()
 		for i in titles.size(): _big(titles[i], 24+i*20 if titles.size()>1 else 44, w)
 	elif page in ["demo_end", "prologue_end"]:
@@ -989,6 +1002,34 @@ func _big(text: String, y: int, w: int) -> void:
 
 # A fixed scatter of stars, clear of the bands [top, bottom] (exclusive) the
 # texts are in.
+func title_stars_move() -> bool:
+	return game.presentation.get("title_stars", false) and game.presentation.get("title_starfield", "") == "warp" \
+		and not game.reduced_effects()
+
+# The fly-through stars at a moment: [position, size, colour] each, on screen and outside the clear
+# bands. Each star keeps a direction from the centre and comes closer; nearer is brighter and bigger.
+func warp_stars(w: int, seconds: float, clear: Array) -> Array:
+	var out := []
+	var t := floorf(seconds * WARP_HZ) / WARP_HZ
+	var centre := Vector2(w / 2.0, Feel.VIEW_H / 2.0)
+	var n := 11
+	for i in WARP_STARS:
+		n = (n * 1103515245 + 12345) & 0x7fffffff
+		var dx := float(n % 2001) / 1000.0 - 1.0
+		n = (n * 1103515245 + 12345) & 0x7fffffff
+		var dy := float(n % 2001) / 1000.0 - 1.0
+		n = (n * 1103515245 + 12345) & 0x7fffffff
+		var phase := float(n % 1000) / 1000.0
+		if absf(dx) < 0.08 and absf(dy) < 0.08: continue   # dead ahead: it would never move
+		var z := 1.0 - fposmod(phase + t / WARP_SECONDS, 1.0) * 0.95   # 1 far .. 0.05 passing
+		var at := centre + Vector2(dx * w / 2.0, dy * Feel.VIEW_H / 2.0) * (0.12 / z)
+		var x := int(at.x)
+		var y := int(at.y)
+		if x < 0 or y < 0 or x >= w or y >= Feel.VIEW_H: continue
+		if clear.any(func(band): return y > band[0] and y < band[1]): continue
+		out.append([Vector2i(x, y), 2 if z < 0.2 else 1, C_WHITE if z < 0.35 else (C_LGREY if z < 0.7 else C_MGREY)])
+	return out
+
 func _stars(w: int, clear: Array) -> void:
 	var n := 7
 	for i in 60:

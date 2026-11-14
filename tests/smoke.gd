@@ -40,6 +40,19 @@ func _run() -> void:
 	check(menus._title_texts()==["THE LAST SIGNAL"],"host title")
 	check(game.display_modes.is_empty(),"no inherited cosmetic products")
 	check(game.telemetry==null,"no analytics")
+	# A fly-through title starfield (presentation title_starfield "warp"): stepped twelve times a
+	# second, on screen and clear of the text bands; Reduced Effects keeps the still field.
+	var bands=[[20,62],[100,150]]
+	var a: Array=menus.warp_stars(320,0.01,bands)
+	check(a.size()>20 and a==menus.warp_stars(320,0.05,bands) and a!=menus.warp_stars(320,1.0,bands),"warp stars move in twelve steps a second")
+	check(a.all(func(s): return s[0].x>=0 and s[0].x<320 and s[0].y>=0 and s[0].y<180 and not bands.any(func(band): return s[0].y>band[0] and s[0].y<band[1])),"warp stars stay on screen and clear of text")
+	check(not menus.title_stars_move(),"stars are still unless the host asks")
+	var shown: Dictionary=game.presentation.duplicate()
+	game.presentation["title_stars"]=true; game.presentation["title_starfield"]="warp"
+	check(menus.title_stars_move(),"warp title stars move")
+	game.settings["reduced_effects"]=true
+	check(not menus.title_stars_move(),"Reduced Effects keeps the stars still")
+	game.settings.erase("reduced_effects"); game.presentation=shown
 	await frame("01-title")
 	if "--reload" in args:
 		check(menus.pick("CONTINUE"),"cold Continue row")

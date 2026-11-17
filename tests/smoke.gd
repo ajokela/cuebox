@@ -4,6 +4,14 @@ extends SceneTree
 class TestBoot:
 	extends "res://engine/bootstrap.gd"
 	func _ready() -> void: pass
+const CueScreen=preload("res://engine/screen.gd")
+# Stands in for DisplayServer's window calls: a headless window can't change.
+class FakeWindow extends RefCounted:
+	var mode:=DisplayServer.WINDOW_MODE_WINDOWED
+	var min_size:=Vector2i.ZERO
+	func window_get_mode(_window:=0) -> int: return mode
+	func window_set_mode(next: int,_window:=0) -> void: mode=next
+	func window_set_min_size(size: Vector2i,_window:=0) -> void: min_size=size
 var host
 var errors: Array=[]
 class ErrorCapture extends Logger:
@@ -55,6 +63,22 @@ func _run() -> void:
 	game.settings["reduced_effects"]=true
 	check(not menus.title_stars_move(),"Reduced Effects keeps the stars still")
 	game.settings.erase("reduced_effects"); game.presentation=shown
+	# Desktop behavior only when the host asks: QUIT after OPTIONS on the title, the window mode
+	# (fullscreen the first time, never smaller than 320x180) and its keys; a capped width shows bars.
+	var window=FakeWindow.new(); var real_window=game.display_server; game.display_server=window
+	game.apply_window_mode()
+	check(not game.desktop and not "QUIT" in menus.items() and window.min_size==Vector2i.ZERO,"no desktop behavior unless asked")
+	game.desktop=true; menus._build(); game.apply_window_mode()
+	check(menus.items().slice(-2)==["OPTIONS","QUIT"],"QUIT after OPTIONS on a desktop title")
+	check(game.settings["window_mode"]=="fullscreen" and window.mode==DisplayServer.WINDOW_MODE_FULLSCREEN and window.min_size==Vector2i(320,180),"desktop window")
+	var f11:=InputEventKey.new(); f11.keycode=KEY_F11; f11.pressed=true
+	var enter:=InputEventKey.new(); enter.keycode=KEY_ENTER; enter.pressed=true
+	check(menus.is_window_key(f11) and not menus.is_window_key(enter),"F11 is a window key, Enter alone isn't")
+	enter.alt_pressed=true; check(menus.is_window_key(enter),"Alt+Enter is a window key")
+	game.desktop=false; menus._build(); game.display_server=real_window
+	check(not menus.is_window_key(f11),"no window keys off desktop")
+	check(CueScreen.fit(Vector2i(5120,1440),400)=={"scale":8,"view":Vector2i(400,180),"offset":Vector2i(960,0)},"width cap with bars")
+	check(CueScreen.fit(Vector2i(1920,1080),400)==CueScreen.fit(Vector2i(1920,1080)) and CueScreen.fit(Vector2i(3440,1440),0)==CueScreen.fit(Vector2i(3440,1440)),"no cap, no change")
 	await frame("01-title")
 	if "--reload" in args:
 		check(menus.pick("CONTINUE"),"cold Continue row")

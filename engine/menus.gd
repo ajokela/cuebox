@@ -34,6 +34,14 @@ const Ink=preload("res://engine/reading_ink.gd")
 # back key arrives as two notifications a moment apart (the activity's back
 # and the key's own), a back gesture as one, so notifications closer together
 # than BACK_REPEAT count as one press.
+#
+# Desktop builds (game.desktop) add QUIT to the title screen, after OPTIONS:
+# it goes through request_quit, as closing the window (or Cmd+Q, Alt+F4)
+# does, so a game under way waits for the player to have control and writes
+# the autosave before the app quits. The pause menu keeps QUIT TO TITLE.
+# Options > DISPLAY gains WINDOW: FULLSCREEN / WINDOWED, which F11, Alt+Enter
+# and, on a Mac, Cmd+Ctrl+F switch too, over the game and on every page; the
+# player's choice is kept in the settings file (game.apply_window_mode).
 
 const Feel = preload("res://engine/feel.gd")
 const PixelFont = preload("res://engine/pixel_font.gd")
@@ -94,6 +102,7 @@ var _quit_requested:=false
 var _storage_panel: Node2D
 var _waiting_action:=""
 var open_url := _open_url  # how website action opens the website (tests catch it instead)
+var mac_shortcuts := OS.has_feature("macos")  # Cmd+Ctrl+F switches the window mode too (tests set it)
 var _last_back := -(1 << 62)  # Time.get_ticks_msec() at the last back press acted on (long ago)
 var reader
 
@@ -358,6 +367,8 @@ func _build() -> void:
 			_row(I18n.t("NEW GAME"), _new_game)
 			_row(I18n.t("LOAD"), _to.bind("load", "title"))
 			_row(I18n.t("OPTIONS"), _to.bind("options", "title"))
+			if game.desktop:
+				_row(I18n.t("QUIT"), request_quit)
 		"pause":
 			_row(I18n.t("RESUME"), close)
 			_row(I18n.t("CONTEXT"),_show_context.bind("pause"))
@@ -384,7 +395,7 @@ func _build() -> void:
 			_row(I18n.t("TEXT COLOUR: %s") % (I18n.t("HIGH CONTRAST") if game.settings["text_colour"]=="high_contrast" else I18n.t("SPEAKER")), _next_text_colour)
 			_row(I18n.t("TEXT SIZE: %s") % (I18n.t("LARGE") if game.settings["text_size"]=="large" else I18n.t("STANDARD")), _next_text_size)
 			if game.manual_dialogue_available():
-				_row(I18n.t("DIALOGUE: %s") % (I18n.t("TAP TO CONTINUE") if game.settings["dialogue_advance"]=="manual" else I18n.t("AUTOMATIC")), _next_dialogue_mode)
+				_row(I18n.t("DIALOGUE: %s") % (I18n.t("MANUAL") if game.settings["dialogue_advance"]=="manual" else I18n.t("AUTOMATIC")), _next_dialogue_mode)
 			_row(I18n.t("TEXT SPEED: %s") % _speed_name(), _next_speed)
 			_row(I18n.t("TEXT BOXES: %s") % _on_off(game.settings["text_boxes"]), func(): game.change_setting("text_boxes", not game.settings["text_boxes"]))
 			_row(I18n.t("SPEAKER NAMES: %s") % _on_off(game.settings["speaker_names"]), func(): game.change_setting("speaker_names", not game.settings["speaker_names"]))
@@ -406,6 +417,8 @@ func _build() -> void:
 		"options_display":
 			_row(I18n.t("CRT LINES: %s") % _on_off(game.crt), func(): game.change_setting("crt", not game.crt))
 			_row(I18n.t("DISPLAY: %s") % (I18n.t("DEFAULT") if game.display_mode == "" else I18n.t(_display_name())), _next_display)
+			if game.desktop:
+				_row(I18n.t("WINDOW: %s") % (I18n.t("WINDOWED") if game.settings.get("window_mode") == "windowed" else I18n.t("FULLSCREEN")), _next_window_mode)
 			_row(I18n.t("BACK"), _open.bind("options"))
 		"options_language":
 			_row(I18n.t("LANGUAGE: %s") % _language_name(), _next_language)
@@ -706,6 +719,10 @@ func _next_dialogue_mode() -> void:
 	game.change_setting("dialogue_advance","automatic" if game.settings["dialogue_advance"]=="manual" else "manual")
 
 
+func _next_window_mode() -> void:
+	game.change_setting("window_mode", "fullscreen" if game.settings.get("window_mode") == "windowed" else "windowed")
+
+
 func _next_speed() -> void:
 	var i := SPEEDS.find(game.settings["text_speed"])
 	game.change_setting("text_speed", SPEEDS[(i + 1) % SPEEDS.size()])
@@ -807,7 +824,7 @@ func _on_hud_tapped(what: String) -> void:
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
 		back_pressed(Time.get_ticks_msec())
-	elif what==NOTIFICATION_WM_CLOSE_REQUEST and game!=null and game.saves.is_versioned():
+	elif what==NOTIFICATION_WM_CLOSE_REQUEST and game!=null and (game.saves.is_versioned() or game.desktop):
 		request_quit()
 	elif what in [NOTIFICATION_APPLICATION_FOCUS_OUT,NOTIFICATION_WM_WINDOW_FOCUS_OUT]:
 		_title_music_held=true
@@ -859,7 +876,23 @@ func back() -> void:
 			_escape()
 
 
+# F11 or Alt+Enter, or Cmd+Ctrl+F on a Mac, in a desktop build.
+func is_window_key(event: InputEvent) -> bool:
+	if not (game.desktop and event is InputEventKey and event.pressed and not event.echo):
+		return false
+	if event.keycode == KEY_F11 or (event.keycode in [KEY_ENTER, KEY_KP_ENTER] and event.alt_pressed):
+		return true
+	return mac_shortcuts and event.keycode == KEY_F and event.meta_pressed and event.ctrl_pressed
+
+
 func _unhandled_input(event: InputEvent) -> void:
+	# First, so Alt+Enter never also picks a row or skips a line.
+	if is_window_key(event):
+		_next_window_mode()
+		if page == "options_display":
+			_build()  # the WINDOW row shows the new mode
+			reader.layout()
+		get_viewport().set_input_as_handled(); return
 	if game.reading_input_consumed():
 		get_viewport().set_input_as_handled(); return
 	if page == "":
@@ -932,7 +965,7 @@ func _draw() -> void:
 			if title_stars_move():
 				for star in warp_stars(w, _warp_clock, _title_boxes(titles, w)): draw_rect(Rect2(star[0], Vector2i(star[1], star[1])), star[2])
 			else:
-				_stars(w, [[20, 62], [TITLE_ROWS_Y - 4, TITLE_ROWS_Y + 4 * ROW + 4]])
+				_stars(w, [[20, 62], [TITLE_ROWS_Y - 4, TITLE_ROWS_Y + maxi(4, _rows.size()) * ROW + 4]])
 		for i in titles.size(): _big(titles[i], 24+i*20 if titles.size()>1 else 44, w)
 	elif page in ["demo_end", "prologue_end"]:
 		var texts := demo_end_texts() if page == "demo_end" else prologue_end_texts()

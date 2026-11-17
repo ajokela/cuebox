@@ -59,6 +59,8 @@ var items
 var rooms
 var demo := false
 var web := false  # browser behavior: end card, no quitting, music held while away
+var desktop := false  # desktop behavior: QUIT on the title, the window mode and its keys, a minimum window size
+var display_server: Object = DisplayServer  # the window's own calls (tests stand in for it: a headless window can't change)
 var test_mode := false
 var test_turbo := false # test harness only; never changes the player's movement constants
 var fast_forward := false
@@ -150,7 +152,9 @@ var foreground_handlers: Array = []
 # StartPoints.parse_cli) is the room the game opens in; a null start opens no
 # game at all, for the title screen. "locale" (from --locale) overrides the
 # player's language; "strict_strings" makes text missing from the string
-# tables an error (tests).
+# tables an error (tests). "desktop" (a host option too) turns on desktop
+# behavior: see apply_window_mode and menus.gd. "display_server" stands in
+# for DisplayServer's window calls (tests).
 func setup(opts: Dictionary) -> void:
 	if not is_inside_tree():
 		push_error("add the game to the tree before calling setup()")
@@ -168,6 +172,8 @@ func setup(opts: Dictionary) -> void:
 	display_modes = presentation.get("display_modes", {}).duplicate(true)
 	foreground_handlers = content.get("foreground_handlers", []).duplicate(true)
 	title_music = content.get("title_music", "")
+	desktop = content.get("desktop", false)
+	display_server = opts.get("display_server", DisplayServer)
 	manual_dialogue_supported=content.get("manual_dialogue",not web and not demo)
 	rooms = content["rooms"].duplicate()
 	crew = content["crew"].duplicate(true)
@@ -790,7 +796,7 @@ func set_display(mode: String, crt_lines: bool) -> void:
 # Reads the settings file and shows it (setup does this).
 func load_settings() -> void:
 	settings = saves.settings()
-	_apply_settings(["text_size","dialogue_advance"])
+	_apply_settings(["text_size","dialogue_advance","window_mode"])
 
 
 # The options menu's way in: changes one setting, shows it and writes the
@@ -802,7 +808,7 @@ func change_setting(key: String, value) -> void:
 	if not known.has(key) or typeof(value) != typeof(known[key]) or (key == "text_speed" and not SaveStore.TEXT_SPEEDS.has(value)):
 		push_error("no setting %s = %s" % [key, value])
 		return
-	if (key=="text_size" and not value in SaveStore.TEXT_SIZES) or (key=="dialogue_advance" and not value in SaveStore.DIALOGUE_MODES) or (key=="text_colour" and not value in SaveStore.TEXT_COLOURS):
+	if (key=="text_size" and not value in SaveStore.TEXT_SIZES) or (key=="dialogue_advance" and not value in SaveStore.DIALOGUE_MODES) or (key=="text_colour" and not value in SaveStore.TEXT_COLOURS) or (key=="window_mode" and not value in SaveStore.WINDOW_MODES):
 		push_error("no setting %s = %s" % [key,value]); return
 	settings[key] = value
 	_apply_settings([key])
@@ -836,6 +842,21 @@ func _apply_settings(changed: Array=[]) -> void:
 	set_display(mode if display_modes.has(mode) else "", settings["crt"])
 	settings["display_mode"] = display_mode
 	if screen!=null: screen.show_reading_contrast(settings["text_colour"]=="high_contrast")
+	if "window_mode" in changed: apply_window_mode()
+
+
+# Desktop builds show the window as the player last left it (settings
+# window_mode, fullscreen the first time) and never let it be made smaller
+# than the game's 320x180. A maximized window counts as a window and stays
+# maximized. Elsewhere the platform owns the window: nothing happens.
+func apply_window_mode() -> void:
+	if not desktop:
+		return
+	display_server.window_set_min_size(Vector2i(Feel.BASE_W, Feel.VIEW_H))
+	var full: bool = settings.get("window_mode", "fullscreen") == "fullscreen"
+	var shown: bool = display_server.window_get_mode() in [DisplayServer.WINDOW_MODE_FULLSCREEN, DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN]
+	if full != shown:
+		display_server.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if full else DisplayServer.WINDOW_MODE_WINDOWED)
 
 
 # ------------------------------------------------------------------ saving
@@ -1035,8 +1056,11 @@ func _arrived() -> void:
 # still until the page is back. Leaving the page may not even give a frame
 # after the blur, which is why on the web progress writes the autosave as it
 # happens as well (_on_state_changed).
+# With a versioned store, or on desktop, closing the window is the menus'
+# request_quit instead: it waits until the player has control, autosaves,
+# and only then quits (the host turns off the tree's auto_accept_quit).
 func _notification(what: int) -> void:
-	if what==NOTIFICATION_WM_CLOSE_REQUEST and saves!=null and saves.is_versioned(): return # menus own the explicit quit/retry flow
+	if what==NOTIFICATION_WM_CLOSE_REQUEST and saves!=null and (saves.is_versioned() or desktop): return # menus own the explicit quit/retry flow
 	if what in [NOTIFICATION_APPLICATION_PAUSED, NOTIFICATION_WM_CLOSE_REQUEST, NOTIFICATION_WM_GO_BACK_REQUEST]:
 		autosave_now()
 	elif web and audio != null and what in [NOTIFICATION_APPLICATION_FOCUS_OUT, NOTIFICATION_WM_WINDOW_FOCUS_OUT]:

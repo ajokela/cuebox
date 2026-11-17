@@ -20,7 +20,7 @@ func boot(options := {}) -> void:
 	var opts := {"screen":screen, "start":null}
 	opts.merge(options,true)
 	game.setup(opts)
-	if game.saves.is_versioned(): get_tree().auto_accept_quit=false
+	if game.saves.is_versioned() or game.desktop: get_tree().auto_accept_quit=false # the menus' request_quit saves first
 	menus = Menus.new(game)
 	screen.viewport.add_child(menus)
 	if opts["start"] == null: menus.show_title()

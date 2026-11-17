@@ -16,8 +16,10 @@ const SLOTS := 3
 const TEXT_SPEEDS := {"normal": 1.0, "slow": 1.5, "fast": 0.7}  # speech time multipliers
 # text_boxes (free, for accessibility) puts a black box behind speech and the
 # conversation panel. display_mode is "" or a mode the player owned when it
-# was chosen; the game shows it only while they still own it.
-const DEFAULT_SETTINGS := {"text_speed": "normal", "text_boxes": false, "crt": false, "display_mode": "", "locale": "en", "speaker_names": true, "music_volume":100, "effects_volume":100, "text_size":"standard", "dialogue_advance":"automatic", "text_colour":"speaker", "reduced_effects":false}
+# was chosen; the game shows it only while they still own it. window_mode is
+# shown only by desktop builds (game.desktop), fullscreen until the player
+# picks otherwise; elsewhere the platform owns the window and it is ignored.
+const DEFAULT_SETTINGS := {"text_speed": "normal", "text_boxes": false, "crt": false, "display_mode": "", "locale": "en", "speaker_names": true, "music_volume":100, "effects_volume":100, "text_size":"standard", "dialogue_advance":"automatic", "text_colour":"speaker", "reduced_effects":false, "window_mode":"fullscreen"}
 const VOLUMES := ["music_volume","effects_volume"]
 
 var user_root: String
@@ -93,6 +95,7 @@ func list() -> Array:
 const TEXT_SIZES := ["standard", "large"]
 const DIALOGUE_MODES := ["automatic", "manual"]
 const TEXT_COLOURS := ["speaker", "high_contrast"]
+const WINDOW_MODES := ["fullscreen", "windowed"]
 
 func settings() -> Dictionary:
 	var out: Dictionary = DEFAULT_SETTINGS.duplicate()
@@ -108,6 +111,7 @@ func settings() -> Dictionary:
 	if not out["text_size"] in TEXT_SIZES: out["text_size"]="standard"
 	if not out["dialogue_advance"] in DIALOGUE_MODES: out["dialogue_advance"]="automatic"
 	if not out["text_colour"] in TEXT_COLOURS: out["text_colour"]="speaker"
+	if not out["window_mode"] in WINDOW_MODES: out["window_mode"]="fullscreen"
 	return out
 
 

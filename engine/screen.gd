@@ -4,8 +4,10 @@ extends SubViewportContainer
 # `viewport`; this container scales that up in whole steps, centred, with
 # black bars where it doesn't fill the window. Like the prototype's
 # keep_height + integer stretch: wider screens get a wider view, narrower ones
-# are letterboxed at 320 wide. Taps and clicks reach the game through it in
-# view coordinates; ones in the bars reach nothing.
+# are letterboxed at 320 wide. A host may cap the width (presentation
+# max_view_w, say the widest its rooms are drawn for): a wider window, such as
+# a 32:9 monitor, gets bars either side instead. Taps and clicks reach the
+# game through it in view coordinates; ones in the bars reach nothing.
 #
 # It also carries the display shader, at device resolution: a display mode's
 # palette swap and CRT lines. What is shown, and ownership of modes, is the
@@ -21,14 +23,20 @@ var reading_compositor
 
 var viewport: SubViewport
 var fitted := {}  # the last fit(): scale, view, offset
+var max_view_w := 0  # presentation max_view_w: the widest view shown; 0 for no limit
 
 var _material := ShaderMaterial.new()
 
 
-# The whole-step scale, view size and position for a window of this size.
-static func fit(window: Vector2i) -> Dictionary:
+# The whole-step scale, view size and position for a window of this size,
+# with the view no wider than max_w (never narrower than the game's 320) when
+# max_w is over 0. What the cap leaves of the window becomes bars, centred.
+static func fit(window: Vector2i, max_w := 0) -> Dictionary:
 	var s := maxi(1, mini(window.y / Feel.VIEW_H, window.x / Feel.BASE_W))
-	var view := Vector2i(maxi(Feel.BASE_W, window.x / s), Feel.VIEW_H)
+	var w := maxi(Feel.BASE_W, window.x / s)
+	if max_w > 0:
+		w = mini(w, maxi(Feel.BASE_W, max_w))
+	var view := Vector2i(w, Feel.VIEW_H)
 	return {"scale": s, "view": view, "offset": (window - view * s) / 2}
 
 
@@ -54,6 +62,11 @@ func configure(presentation: Dictionary) -> void:
 	for c in presentation.get("palette", []):
 		src.append(Vector3(c.r, c.g, c.b))
 	_material.set_shader_parameter("src", src)
+	var cap := int(presentation.get("max_view_w", 0))
+	if cap != max_view_w:
+		max_view_w = cap
+		if is_inside_tree():
+			refit()  # a cap given at setup applies at once
 
 
 func _ready() -> void:
@@ -62,7 +75,7 @@ func _ready() -> void:
 
 
 func refit() -> void:
-	fitted = fit(get_tree().root.size)
+	fitted = fit(get_tree().root.size, max_view_w)
 	stretch_shrink = fitted["scale"]
 	size = Vector2(fitted["view"] * fitted["scale"])
 	position = Vector2(fitted["offset"])

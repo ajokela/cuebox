@@ -35,7 +35,17 @@ Optional host configuration:
   entitlement ID). Empty entitlement IDs are free. No external link appears
   without a supplied URL. Display modes are cosmetic and optional.
   `recovery_progress` optionally supplies the save-recovery label with a `%s`
-  placeholder; the default is `PROGRESS: %s`.
+  placeholder; the default is `PROGRESS: %s`. `max_view_w` caps the view's
+  width in game pixels (at least 320; 0 or absent for no cap): a wider window,
+  such as a 32:9 monitor, shows bars either side instead of more room.
+- `desktop`: desktop behavior, off by default. The title screen gains QUIT
+  after OPTIONS, and closing the window goes through the same quit request,
+  which waits for the player to have control and autosaves first. Options >
+  DISPLAY gains WINDOW: FULLSCREEN / WINDOWED, also switched by F11, Alt+Enter
+  and, on macOS, Cmd+Ctrl+F; the choice is kept in the settings file
+  (`window_mode`, fullscreen the first time). The window can't be made smaller
+  than 320×180. Hosts that construct the game themselves should turn off the
+  tree's `auto_accept_quit` for it, as `bootstrap.gd` does.
 - `audio_root` and `sounds`: audio directory and per-cue resource overrides.
   Empty or absent resources are silent. WAV music loops; other stream types
   retain their imported loop settings. `title_music` names a cue.

@@ -40,8 +40,10 @@ const Ink=preload("res://engine/reading_ink.gd")
 # does, so a game under way waits for the player to have control and writes
 # the autosave before the app quits. The pause menu keeps QUIT TO TITLE.
 # Options > DISPLAY gains WINDOW: FULLSCREEN / WINDOWED, which F11, Alt+Enter
-# and, on a Mac, Cmd+Ctrl+F switch too, over the game and on every page; the
-# player's choice is kept in the settings file (game.apply_window_mode).
+# and, on a Mac, Cmd+Ctrl+F switch too, over the game and on every page. Both
+# go by the real window, which the player may also have changed through the
+# system; the mode is kept in the settings file as the player picks it and as
+# the window is at quit (game.apply_window_mode, remember_window_mode).
 
 const Feel = preload("res://engine/feel.gd")
 const PixelFont = preload("res://engine/pixel_font.gd")
@@ -418,7 +420,7 @@ func _build() -> void:
 			_row(I18n.t("CRT LINES: %s") % _on_off(game.crt), func(): game.change_setting("crt", not game.crt))
 			_row(I18n.t("DISPLAY: %s") % (I18n.t("DEFAULT") if game.display_mode == "" else I18n.t(_display_name())), _next_display)
 			if game.desktop:
-				_row(I18n.t("WINDOW: %s") % (I18n.t("WINDOWED") if game.settings.get("window_mode") == "windowed" else I18n.t("FULLSCREEN")), _next_window_mode)
+				_row(I18n.t("WINDOW: %s") % (I18n.t("FULLSCREEN") if game.window_is_fullscreen() else I18n.t("WINDOWED")), _next_window_mode)
 			_row(I18n.t("BACK"), _open.bind("options"))
 		"options_language":
 			_row(I18n.t("LANGUAGE: %s") % _language_name(), _next_language)
@@ -719,8 +721,9 @@ func _next_dialogue_mode() -> void:
 	game.change_setting("dialogue_advance","automatic" if game.settings["dialogue_advance"]=="manual" else "manual")
 
 
+# From what the window is now, not the setting (see game.window_is_fullscreen).
 func _next_window_mode() -> void:
-	game.change_setting("window_mode", "fullscreen" if game.settings.get("window_mode") == "windowed" else "windowed")
+	game.change_setting("window_mode", "windowed" if game.window_is_fullscreen() else "fullscreen")
 
 
 func _next_speed() -> void:
@@ -834,6 +837,7 @@ func _notification(what: int) -> void:
 		_title_music.stream_paused=false
 
 func request_quit() -> void:
+	game.remember_window_mode()
 	if game.state==null:
 		quit_app.call(); return
 	if game.saves.has_pending_commit():

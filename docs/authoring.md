@@ -42,8 +42,10 @@ Optional host configuration:
   after OPTIONS, and closing the window goes through the same quit request,
   which waits for the player to have control and autosaves first. Options >
   DISPLAY gains WINDOW: FULLSCREEN / WINDOWED, also switched by F11, Alt+Enter
-  and, on macOS, Cmd+Ctrl+F; the choice is kept in the settings file
-  (`window_mode`, fullscreen the first time). The window can't be made smaller
+  and, on macOS, Cmd+Ctrl+F. The row and keys go by the real window (the
+  player may change it through the system too); the mode is kept in the
+  settings file (`window_mode`, fullscreen the first time) as picked and as
+  the window is at quit. The window can't be made smaller
   than 320×180. Hosts that construct the game themselves should turn off the
   tree's `auto_accept_quit` for it, as `bootstrap.gd` does.
 - `audio_root` and `sounds`: audio directory and per-cue resource overrides.

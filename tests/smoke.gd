@@ -75,6 +75,10 @@ func _run() -> void:
 	var enter:=InputEventKey.new(); enter.keycode=KEY_ENTER; enter.pressed=true
 	check(menus.is_window_key(f11) and not menus.is_window_key(enter),"F11 is a window key, Enter alone isn't")
 	enter.alt_pressed=true; check(menus.is_window_key(enter),"Alt+Enter is a window key")
+	window.mode=DisplayServer.WINDOW_MODE_WINDOWED  # left fullscreen through the system
+	check(not game.window_is_fullscreen(),"the real window says")
+	menus._next_window_mode()
+	check(window.mode==DisplayServer.WINDOW_MODE_FULLSCREEN and game.settings["window_mode"]=="fullscreen","one toggle back to fullscreen")
 	game.desktop=false; menus._build(); game.display_server=real_window
 	check(not menus.is_window_key(f11),"no window keys off desktop")
 	check(CueScreen.fit(Vector2i(5120,1440),400)=={"scale":8,"view":Vector2i(400,180),"offset":Vector2i(960,0)},"width cap with bars")

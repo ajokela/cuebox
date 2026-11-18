@@ -854,9 +854,29 @@ func apply_window_mode() -> void:
 		return
 	display_server.window_set_min_size(Vector2i(Feel.BASE_W, Feel.VIEW_H))
 	var full: bool = settings.get("window_mode", "fullscreen") == "fullscreen"
-	var shown: bool = display_server.window_get_mode() in [DisplayServer.WINDOW_MODE_FULLSCREEN, DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN]
-	if full != shown:
+	if full != window_is_fullscreen():
 		display_server.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if full else DisplayServer.WINDOW_MODE_WINDOWED)
+
+
+# Whether the window is fullscreen now. The window says, not the setting: the
+# player may have left or entered fullscreen through the system itself
+# (macOS's green button or Globe+F, or its own Ctrl+Cmd+F), so the menus'
+# WINDOW row and keys go by this.
+func window_is_fullscreen() -> bool:
+	return display_server.window_get_mode() in [DisplayServer.WINDOW_MODE_FULLSCREEN, DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN]
+
+
+# Desktop builds, on the way out: keeps the window mode as the window was
+# left, however it got that way, so the next launch opens the same. (Done at
+# quit rather than as the window changes: a window part way through a
+# system's fullscreen animation may report either mode.)
+func remember_window_mode() -> void:
+	if not desktop or settings.is_empty():
+		return
+	var shown := "fullscreen" if window_is_fullscreen() else "windowed"
+	if settings.get("window_mode") != shown:
+		settings["window_mode"] = shown
+		saves.save_settings(settings)
 
 
 # ------------------------------------------------------------------ saving
